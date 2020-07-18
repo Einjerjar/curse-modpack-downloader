@@ -19,6 +19,15 @@ class AddonFile:
         # Just in case we wanna find the addon root
         self.fingerprint = fingerprint
 
+        # Runtime reference, not saved to json and stuff
+        self.linked_file_loc = None
+
+    def set_linked_file(self, loc):
+        self.linked_file_loc = loc
+
+    def get_linked_file(self):
+        return self.linked_file_loc
+
     def get_json(self):
         return {
             'uid': self.uid,

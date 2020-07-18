@@ -124,12 +124,12 @@ class ModStore:
         #  else, make sure that all the preceding dirs are made
         if p.exists(target) and p.isfile(target):
             if p.getsize(target) == addon_file.length:
-                logger.info(' * File [{}] already exists and matches the known file size, considering as a valid copy'.format(
-                    addon_file.d_name))
+                logger.info(' / File [{}] already exists and matches the known file size, considering as a valid copy'
+                            .format(addon_file.d_name))
                 return target
             else:
-                logger.warn(' * File [{}] already exists but does not match the known file size, proceeding to download'.format(
-                    addon_file.d_name))
+                logger.warn(' ! File [{}] already exists but does not match the known file size, proceeding to download'
+                            .format(addon_file.d_name))
         else:
             Path(p.split(target)[0]).mkdir(parents=True, exist_ok=True)
 
@@ -172,9 +172,9 @@ class ModStore:
 
         if not _success:
             logger.error('  ! Failed to download [x] after trying [y] times, skipping')
-            return False
+            return None
 
-        logger.info(' * Successfully downloaded [x]')
+        logger.info(' / Successfully downloaded [x]')
         return target
 
     def get_addon_info(self, addon_id: int):

@@ -2,11 +2,15 @@ import json
 import os
 import requests
 import zipfile
+import shutil
 
 from argparse import Namespace
+from pathlib import Path
+from typing import List
 
 from cmpd.ModStore import ModStore, AddonInfo, AddonFile
 from cmpd.logger import logger
+from distutils.dir_util import copy_tree, remove_tree
 
 
 class CMPD:
@@ -41,6 +45,8 @@ class CMPD:
         self.store = ModStore(self.store_dir)
         self.manifest = None
 
+        self.mod_files: List[AddonFile] = []
+
     def download_modpack(self):
         """
         Begins the downloading of the assigned modpack
@@ -70,12 +76,6 @@ class CMPD:
         # Save modpack info to store
         self.store.create_addon_details(self.info)
 
-        # TODO   : Sanity check on whether this could also potentially download server files instead of client (BAD)
-        # UPDATE : It seems like it might (which is bad, really bad, for me anyways, lol)
-        #        :  will have to add a selection screen of sorts, hopefully can make it bearable
-        #        :  and not annoying at all, lol
-        # Download latest modpack file
-
         # FIXME  : Fix this naive implementation
         # Get which one is the newest (BETTER SOLUTION PLS LOL)
         #     ps : create a max/sort func?
@@ -89,6 +89,11 @@ class CMPD:
 
         logger.info('-- Downloading modpack file')
 
+        # TODO   : Sanity check on whether this could also potentially download server files instead of client (BAD)
+        # UPDATE : It seems like it might (which is bad, really bad, for me anyways, lol)
+        #        :  will have to add a selection screen of sorts, hopefully can make it bearable
+        #        :  and not annoying at all, lol
+        # Download latest modpack file
         mod_file = self.store.download_to_store(self.info.latest_files[_newest])
         if not mod_file:
             logger.warning('!! Modpack download failed')
@@ -115,9 +120,56 @@ class CMPD:
             logger.info('-- Downloading Mod [{} of {}] :: ID [{}]'.format(i+1, _p_len, f_id))
             info: AddonFile = self.get_addon_file_info(p_id, f_id)
 
-            self.store.download_to_store(info)
+            info.set_linked_file(self.store.download_to_store(info))
+
+            self.mod_files.append(info)
+
+        # TODO : Ask to delete files not related to mod
+        logger.info('-- Copying files to output folder [{}]'.format(self.out_dir))
+        self.copy_mod_files()
+        logger.info(' / Done copying mod files to output folder')
+
+        logger.info('-- Copying mod overrides to output folder')
+        self.extract_overrides(pack_archive)
+        logger.info(' / Done copying overrides')
 
         logger.info('-- Finished ?')
+
+    def copy_mod_files(self):
+        p = os.path
+        # Make sure we're good with the dirs
+        Path(p.join(self.out_dir, 'mods')).mkdir(parents=True, exist_ok=True)
+
+        # TODO : Handle Exceptions
+        for i in self.mod_files:
+            if not i:
+                continue
+            src = i.linked_file_loc
+            target = p.join(self.out_dir, 'mods', p.split(src)[1])
+
+            # Random sanity (?) check (? lol)
+            if not (p.exists(target) and p.isfile(target) and p.getsize(target) == p.getsize(src)):
+                logger.info(' * Copying [{}] to out dir'.format(i.get_linked_file()))
+                shutil.copyfile(i.linked_file_loc, target)
+                logger.info(' / Copied [{}] to out dir'.format(i.get_linked_file()))
+            else:
+                logger.info(' / File [{}] already exists in target folder and matches'.format(i.get_linked_file()))
+
+    def extract_overrides(self, pack_archive: zipfile.ZipFile):
+        p = os.path
+
+        # TODO : Slight chance of 'override' folder being a flexibly named dir
+        #      :  that is hard referenced within the addon info json from the api
+        for i in pack_archive.namelist():
+            if i.startswith('overrides'):
+                pack_archive.extract(i, self.out_dir)
+
+        o_folder = p.join(self.out_dir, 'overrides')
+        # o_temp = p.join(self.out_dir, '_overrides_temp')
+
+        # TODO : Might be bad idea if overrides folder contains a folder named overrides (:3)
+        copy_tree(o_folder, self.out_dir)
+        remove_tree(o_folder)
 
     def get_addon_info(self, addon_id):
         api = self.api

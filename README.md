@@ -4,8 +4,6 @@ An automated curseforge/twitch modpack downloader for minecraft (? and possibly 
 
 Api loosely based off from [ https://github.com/Gaz492/TwitchAPI ] 
 
----
-
 ## Usage
 
 Will soon work on a more modular approach but currently

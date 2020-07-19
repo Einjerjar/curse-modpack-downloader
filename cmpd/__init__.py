@@ -48,11 +48,10 @@ class CMPD:
         self.mod_files: List[AddonFile] = []
 
     def set_header_val(self, ref, val=None):
-        if ref in self.headers:
-            if val is None:
-                self.headers.pop(ref)
-                return
-            self.headers[ref] = val
+        if ref in self.headers and val is None:
+            self.headers.pop(ref)
+            return
+        self.headers[ref] = val
 
     def unset_header_val(self, ref):
         if ref in self.headers:

@@ -39,8 +39,9 @@ store to the target directory (defaults to `modpack`) then extracts
 the overrides from the modpack's base archive
 
 ## TODO
-* [ ] Allow running as python module
+* [x] ~~Allow running as python module~~
 * [ ] Allow direct downloading of modpack to target dir (ignore/skip mod storage)
 * [ ] Ask to delete files not related to current mod :3
 * [ ] Documentations, lol
 * [ ] GUI OwO
+* [x] Allow a more obvious and safe indirect modification of default request headers ?

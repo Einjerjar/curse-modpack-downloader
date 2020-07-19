@@ -27,14 +27,14 @@ class CMPD:
 
         # Self vars
         self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                           'Chrome/79.0.3945.88 Safari/537.36',
-            'DNT': '1',
-            'Accept': '*/*',
-            'Sec-Fetch-Site': 'cross-site',
-            'Sec-Fetch-Mode': 'cors',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Accept-Language': 'en-US,en;q=0.9,ja;q=0.8,fil;q=0.7',
+            'dnt': '1',
+            'accept': '*/*',
+            'sec-fetch-site': 'cross-site',
+            'sec-fetch-mode': 'cors',
+            'accept-encoding': 'gzip, deflate, br',
+            'accept-language': 'en-US,en;q=0.9,ja;q=0.8,fil;q=0.7',
         }
         self.project_id = project_id
         self.store_dir = store_dir or 'cmpd_store'
@@ -46,6 +46,17 @@ class CMPD:
         self.manifest = None
 
         self.mod_files: List[AddonFile] = []
+
+    def set_header_val(self, ref, val=None):
+        if ref in self.headers:
+            if val is None:
+                self.headers.pop(ref)
+                return
+            self.headers[ref] = val
+
+    def unset_header_val(self, ref):
+        if ref in self.headers:
+            self.headers.pop(ref)
 
     def download_modpack(self):
         """
@@ -117,7 +128,7 @@ class CMPD:
             p_id = item['projectID']
             f_id = item['fileID']
 
-            logger.info('-- Downloading Mod [{} of {}] :: ID [{}]'.format(i+1, _p_len, f_id))
+            logger.info('-- Downloading Mod [{} of {}] :: ID [{}]'.format(i + 1, _p_len, f_id))
             info: AddonFile = self.get_addon_file_info(p_id, f_id)
 
             info.set_linked_file(self.store.download_to_store(info))

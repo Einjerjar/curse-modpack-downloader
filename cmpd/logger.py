@@ -87,11 +87,11 @@ logger.setLevel(logging.DEBUG)
 log_fmt = logging.Formatter('%(asctime)s :: %(filename)12s:%(lineno)-4s :: %(levelname)-7s :: %(message)s',
                             '%Y-%m-%d %I:%M:%S %p')
 
-# INFO and DEBUG
+# INFO only
 log_ich = logging.StreamHandler(sys.stdout)
 log_ich.setLevel(logging.DEBUG)
 log_ich.setFormatter(log_fmt)
-log_ich.addFilter(LogFilter(logging.INFO, FilterRestrictions.BELOW_AND_EXACT))
+log_ich.addFilter(LogFilter(logging.INFO, FilterRestrictions.EXACT))
 
 # WARNING TILL CRITICAL (NO H_EXCEPT)
 log_ech = logging.StreamHandler(sys.stderr)

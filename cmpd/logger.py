@@ -23,6 +23,7 @@ class LogFilter(object):
         f = FilterRestrictions
 
         # TODO : Kinda naive implementation ?? no better ideas atm
+        # ps : holy nuts, actually works well, specially the range one, lol
         self.filters = {
             f.BELOW: self.below,
             f.BELOW_AND_EXACT: self.below_e,
@@ -63,10 +64,28 @@ class LogFilter(object):
         return self.m_filter(log.levelno)
 
 
+# -----------------------------------------------
+# https://stackoverflow.com/a/13638084
+HIDDEN_EXCEPTION = 60
+
+
+def h_except(self, message, *args, **kwargs):
+    if self.isEnabledFor(HIDDEN_EXCEPTION):
+        self._log(HIDDEN_EXCEPTION, message, args, **kwargs)
+
+
+logging.addLevelName(HIDDEN_EXCEPTION, 'H_EXCEPT')
+logging.Logger.h_except = h_except
+
+logging.HIDDEN_EXCEPTION = HIDDEN_EXCEPTION
+# https://stackoverflow.com/a/13638084
+# -----------------------------------------------
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-log_fmt = logging.Formatter('%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s', '%Y-%m-%d %I:%M:%S %p')
+log_fmt = logging.Formatter('%(asctime)s :: %(filename)12s:%(lineno)-4s :: %(levelname)-7s :: %(message)s',
+                            '%Y-%m-%d %I:%M:%S %p')
 
 # INFO and DEBUG
 log_ich = logging.StreamHandler(sys.stdout)
@@ -74,11 +93,11 @@ log_ich.setLevel(logging.DEBUG)
 log_ich.setFormatter(log_fmt)
 log_ich.addFilter(LogFilter(logging.INFO, FilterRestrictions.BELOW_AND_EXACT))
 
-# WARNING AND ABOVE
+# WARNING TILL CRITICAL (NO H_EXCEPT)
 log_ech = logging.StreamHandler(sys.stderr)
 log_ech.setLevel(logging.DEBUG)
 log_ech.setFormatter(log_fmt)
-log_ech.addFilter(LogFilter(logging.INFO, FilterRestrictions.ABOVE))
+log_ech.addFilter(LogFilter([logging.WARNING, logging.CRITICAL], FilterRestrictions.RANGE_INC))
 
 log_fh = logging.FileHandler('cmpd2.log', 'w')
 log_fh.setLevel(logging.DEBUG)

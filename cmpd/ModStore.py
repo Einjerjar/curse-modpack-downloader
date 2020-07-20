@@ -124,11 +124,11 @@ class ModStore:
         #  else, make sure that all the preceding dirs are made
         if p.exists(target) and p.isfile(target):
             if p.getsize(target) == addon_file.length:
-                logger.info(' / File [{}] already exists and matches the known file size, considering as a valid copy'
+                logger.info(' ✔ File [{}] already exists seems valid.'
                             .format(addon_file.d_name))
                 return target
             else:
-                logger.warn(' ! File [{}] already exists but does not match the known file size, proceeding to download'
+                logger.warn(' ❌ File [{}] exists but seems corrupted, redownloading.'
                             .format(addon_file.d_name))
         else:
             Path(p.split(target)[0]).mkdir(parents=True, exist_ok=True)
@@ -139,16 +139,16 @@ class ModStore:
                 _size = _r.headers.get('content-length')
 
                 if _size is None:
-                    logger.error('!! Headers for downloading [] does not have content-length ?')
+                    logger.error('❌❌ Headers for downloading [] does not have content-length ?')
                     logger.error(_r.content)
                     _retries += 1
                     continue
 
                 with open(target, 'wb') as f:
-                    logger.info(' : Attempt #{} :: Downloading [{}] :: {}'.format(
+                    logger.info('   Attempt #{} :: Downloading {} :: [{}]'.format(
                         _retries,
-                        addon_file.d_name,
-                        humanize.naturalsize(addon_file.length))
+                        humanize.naturalsize(addon_file.length).rjust(8),
+                        addon_file.d_name)
                     )
 
                     f_load = 0
@@ -156,10 +156,10 @@ class ModStore:
                     for data in _r.iter_content(chunk_size=self.chunk_size):
                         f_load += len(data)
                         f.write(data)
-                        logger.info(' % {}% :: {} of {} :: [{}]'.format(
-                            str(int((f_load / f_size) * 100)),
-                            humanize.naturalsize(f_load),
-                            humanize.naturalsize(f_size),
+                        logger.info('   {}% :: {} of {} :: [{}]'.format(
+                            str(int((f_load / f_size) * 100)).rjust(9),
+                            humanize.naturalsize(f_load).rjust(8),
+                            humanize.naturalsize(f_size).rjust(8),
                             addon_file.d_name
                         ))
 
@@ -167,14 +167,14 @@ class ModStore:
                 break
             except Exception as e:
                 _retries += 1
-                logger.exception(e)
-                logger.error('  ! Failed, Retrying [{}]'.format(_retries))
+                logger.h_except(e)
+                logger.error(' ❌ Failed, Retrying [{}].'.format(_retries))
 
         if not _success:
-            logger.error('  ! Failed to download [x] after trying [y] times, skipping')
+            logger.error(' ❌ Failed to download [x] after trying [y] times, skipping.')
             return None
 
-        logger.info(' / Successfully downloaded [x]')
+        logger.info(' ✔ Downloaded [{}].'.format(addon_file.d_name))
         return target
 
     def get_addon_info(self, addon_id: int):
@@ -193,7 +193,7 @@ class ModStore:
         # TODO : Handle Exceptions
         a_data = open(addon_data, 'r').read()
         if len(a_data) == 0:
-            logger.critical('!! [addon_data] for [{}] is empty!! returning a false!'.format(addon_id))
+            logger.critical('❌❌ [addon_data] for [{}] is empty!! returning a false!'.format(addon_id))
             return False
         return AddonInfo.create_from_store(json.loads(a_data), self)
 
@@ -213,7 +213,7 @@ class ModStore:
         # TODO : Handle Exceptions
         a_data = open(file_data, 'r').read()
         if len(a_data) == 0:
-            logger.critical('!! [file_data] for [{}] is empty!! returning a false!'.format(file_id))
+            logger.critical('❌❌ [file_data] for [{}] is empty!! returning a false!'.format(file_id))
             return False
         return AddonFile.create_from_store(json.loads(a_data))
 

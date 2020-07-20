@@ -5,10 +5,12 @@ An automated curseforge/twitch modpack downloader for minecraft (? and possibly 
 Api loosely based off [ https://github.com/Gaz492/TwitchAPI ]
 
 ## Usage
+### As Module
+```shell script
+python -m cmpd [project_id]
+```
 
-Will soon work on a more modular approach but currently
-works as follows (or just check `runner.py`)
-
+### As package
 Import the package and create an instance with the
 project's addon/project id (from curseforge/twitch)
 then finally run the download_modpack function like so
@@ -26,6 +28,7 @@ output directory like so (defaults to `cmpd_store` and `modpack` respectively)
 cmpd.CMPD(project_id, store_dir='store_dir', out_dir='modpack_dir')
 ```
 
+### Process
 When ran, the app creates a basic mod storage on the target mod
 storage directory (defaults to `cmpd_store`) and stores
 basic infos that runs through it (addon and file info).
@@ -44,4 +47,4 @@ the overrides from the modpack's base archive
 * [ ] Ask to delete files not related to current mod :3
 * [ ] Documentations, lol
 * [ ] GUI OwO
-* [x] Allow a more obvious and safe indirect modification of default request headers ?
+* [x] ~~Allow a more obvious and safe indirect modification of default request headers ?~~

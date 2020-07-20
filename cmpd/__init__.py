@@ -75,6 +75,10 @@ class CMPD:
         # Get modpack info
         self.info = self.get_addon_info(self.project_id)
 
+        if self.info is None:
+            logger.critical(' ❌ Halting process as the main modpack file cannot be retrieved')
+            exit(-1)
+
         # Print info
         self.print_pack_info(self.info)
 
@@ -97,7 +101,7 @@ class CMPD:
             if f.timestamp > self.info.latest_files[_newest].timestamp:
                 _newest = i
 
-        logger.info('-- Downloading modpack file')
+        logger.info('-- Downloading modpack file.')
 
         # TODO   : Sanity check on whether this could also potentially download server files instead of client (BAD)
         # UPDATE : It seems like it might (which is bad, really bad, for me anyways, lol)
@@ -106,10 +110,10 @@ class CMPD:
         # Download latest modpack file
         mod_file = self.store.download_to_store(self.info.latest_files[_newest])
         if not mod_file:
-            logger.warning('!! Modpack download failed')
+            logger.warning(' ❌ Modpack download failed.')
             return
 
-        logger.info('-- Loading Manifest')
+        logger.info('-- Loading Manifest.')
 
         # TODO : Handle Exceptions
         #      : possibly fileExceptions from zipfile and jsonExceptions from json
@@ -117,7 +121,7 @@ class CMPD:
         manifest_data = json.loads(pack_archive.read('manifest.json').decode('utf-8'))
         pack_files = manifest_data['files']
 
-        logger.info('-- Manifest Loaded')
+        logger.info('-- Manifest Loaded.')
 
         # TODO : Handle Exceptions and Edge Cases
         #   ps : no idea wtf the edge case I was talking about then, lol
@@ -127,21 +131,25 @@ class CMPD:
             p_id = item['projectID']
             f_id = item['fileID']
 
-            logger.info('-- Downloading Mod [{} of {}] :: ID [{}]'.format(i + 1, _p_len, f_id))
+            logger.info('-- #{} of {} :: ID [{}]'.format(str(i + 1).rjust(3), str(_p_len).rjust(3), f_id))
             info: AddonFile = self.get_addon_file_info(p_id, f_id)
+
+            if info is None:
+                logger.warning(' ! Skipping [{}] as it seems unavailable')
+                continue
 
             info.set_linked_file(self.store.download_to_store(info))
 
             self.mod_files.append(info)
 
         # TODO : Ask to delete files not related to mod
-        logger.info('-- Copying files to output folder [{}]'.format(self.out_dir))
+        logger.info('-- Copying files to output folder [{}].'.format(self.out_dir))
         self.copy_mod_files()
-        logger.info(' / Done copying mod files to output folder')
+        logger.info(' ✔ Done copying mod files to output folder.')
 
-        logger.info('-- Copying mod overrides to output folder')
+        logger.info('-- Copying mod overrides to output folder.')
         self.extract_overrides(pack_archive)
-        logger.info(' / Done copying overrides')
+        logger.info(' ✔ Done copying overrides.')
 
         logger.info('-- Finished ?')
 
@@ -155,15 +163,20 @@ class CMPD:
             if not i:
                 continue
             src = i.linked_file_loc
+
+            if src is None:
+                logger.error(' ❌ Cannot find file linked to mod! skipping!')
+                continue
+
             target = p.join(self.out_dir, 'mods', p.split(src)[1])
 
             # Random sanity (?) check (? lol)
             if not (p.exists(target) and p.isfile(target) and p.getsize(target) == p.getsize(src)):
-                logger.info(' * Copying [{}] to out dir'.format(i.get_linked_file()))
+                logger.info(' * Copying [{}] to out dir.'.format(i.get_linked_file()))
                 shutil.copyfile(i.linked_file_loc, target)
-                logger.info(' / Copied [{}] to out dir'.format(i.get_linked_file()))
+                logger.info(' ✔ Copied  [{}] to out dir.'.format(i.get_linked_file()))
             else:
-                logger.info(' / File [{}] already exists in target folder and matches'.format(i.get_linked_file()))
+                logger.info(' ✔ File [{}] already exists in target folder and matches.'.format(i.get_linked_file()))
 
     def extract_overrides(self, pack_archive: zipfile.ZipFile):
         p = os.path
@@ -188,10 +201,16 @@ class CMPD:
         if f_store:
             return f_store
 
-        j_source = requests.get(api.addon_info.format(addon_id), headers=self.headers).content.decode('utf-8')
-        j_data = json.loads(j_source)
+        try:
+            j_source = requests.get(api.addon_info.format(addon_id), headers=self.headers).content.decode('utf-8')
+            j_data = json.loads(j_source)
 
-        return AddonInfo.create_from_json(j_data)
+            return AddonInfo.create_from_json(j_data)
+        except Exception as e:
+            logger.h_except(e)
+            logger.error(' ❌ Failed getting addon info for [{}]'.format(addon_id))
+
+        return None
 
     def get_addon_file_info(self, addon_id, file_id):
         api = self.api
@@ -200,11 +219,17 @@ class CMPD:
         if f_store:
             return f_store
 
-        j_source = requests.get(api.file_info.format(addon_id, file_id), headers=self.headers).content.decode(
-            'utf-8')
-        j_data = json.loads(j_source)
+        try:
+            j_source = requests.get(api.file_info.format(addon_id, file_id), headers=self.headers).content.decode(
+                'utf-8')
+            j_data = json.loads(j_source)
 
-        return AddonFile.create_from_json(j_data)
+            return AddonFile.create_from_json(j_data)
+        except Exception as e:
+            logger.h_except(e)
+            logger.error(' ❌ Failed getting file info for [{}]'.format(file_id))
+
+        return None
 
     @staticmethod
     def print_pack_info(pack_info: AddonInfo):

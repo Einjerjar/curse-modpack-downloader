@@ -191,7 +191,7 @@ class CMPD:
 
             # Random sanity (?) check (? lol)
             if not (p.exists(target) and p.isfile(target) and p.getsize(target) == p.getsize(src)):
-                logger.info(' * Copying [{}] to out dir.'.format(i.get_linked_file()))
+                logger.debug(' * Copying [{}] to out dir.'.format(i.get_linked_file()))
                 shutil.copyfile(i.linked_file_loc, target)
                 logger.info(' ✔ Copied  [{}] to out dir.'.format(i.get_linked_file()))
             else:

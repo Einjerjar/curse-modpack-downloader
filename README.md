@@ -7,7 +7,7 @@ Api loosely based off [ https://github.com/Gaz492/TwitchAPI ]
 ## Usage
 ### As Module
 ```shell script
-python -m cmpd [project_id]
+python -m cmpd <project_id> [-o, --output modpack_folder] [-s, --store store_folder]
 ```
 
 ### As package
@@ -48,3 +48,6 @@ the overrides from the modpack's base archive
 * [ ] Documentations, lol
 * [ ] GUI OwO
 * [x] ~~Allow a more obvious and safe indirect modification of default request headers ?~~
+
+### Send support :3
+<a href='https://ko-fi.com/X8X831J1L' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi1.png?v=2' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>

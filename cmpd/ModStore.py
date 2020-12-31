@@ -156,11 +156,10 @@ class ModStore:
                     for data in _r.iter_content(chunk_size=self.chunk_size):
                         f_load += len(data)
                         f.write(data)
-                        logger.info('   {}% :: {} of {} :: [{}]'.format(
+                        logger.info('   {}% :: {} of {}'.format(
                             str(int((f_load / f_size) * 100)).rjust(9),
                             humanize.naturalsize(f_load).rjust(8),
-                            humanize.naturalsize(f_size).rjust(8),
-                            addon_file.d_name
+                            humanize.naturalsize(f_size).rjust(8)
                         ))
 
                 _success = True

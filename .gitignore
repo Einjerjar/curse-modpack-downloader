@@ -2,5 +2,9 @@ cmpd_store
 cmpd_temp
 modpack
 venv
-cmpd2.log
+**/*.log
 packs.txt
+**/__pycache__/**
+.idea
+z_*/**
+mock*

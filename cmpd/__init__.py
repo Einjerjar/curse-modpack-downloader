@@ -77,7 +77,7 @@ class CMPD:
         self.info = self.get_addon_info(self.project_id)
 
         if self.info is None:
-            logger.critical(' ✖ Halting process as the main modpack file cannot be retrieved')
+            logger.critical(' x Halting process as the main modpack file cannot be retrieved')
             exit(-1)
 
         # Print info
@@ -111,7 +111,7 @@ class CMPD:
         # Download latest modpack file
         mod_file = self.store.download_to_store(self.info.latest_files[_newest])
         if not mod_file:
-            logger.warning(' ✖ Modpack download failed.')
+            logger.warning(' x Modpack download failed.')
             return
 
         logger.info('-- Loading Manifest.')
@@ -144,7 +144,7 @@ class CMPD:
             file_loc = self.store.download_to_store(info)
 
             if file_loc is None:
-                logger.warning(' ✖ Cannot download [{}]'.format(info.d_name))
+                logger.warning(' x Cannot download [{}]'.format(info.d_name))
                 self.failed_mods.append(info.d_name)
                 continue
 
@@ -155,14 +155,14 @@ class CMPD:
         # TODO : Ask to delete files not related to mod
         logger.info('-- Copying files to output folder [{}].'.format(self.out_dir))
         self.copy_mod_files()
-        logger.info(' ✔ Done copying mod files to output folder.')
+        logger.info(' / Done copying mod files to output folder.')
 
         logger.info('-- Copying mod overrides to output folder.')
         self.extract_overrides(pack_archive)
-        logger.info(' ✔ Done copying overrides.')
+        logger.info(' / Done copying overrides.')
 
         if len(self.failed_mods) > 0:
-            logger.warning(' ✖ [{}] Items Failed/Missing'.format(len(self.failed_mods)))
+            logger.warning(' x [{}] Items Failed/Missing'.format(len(self.failed_mods)))
             f_len = len(self.failed_mods)
             fs_len = len(str(f_len))
             for i in range(f_len):
@@ -183,7 +183,7 @@ class CMPD:
             src = i.linked_file_loc
 
             if src is None:
-                logger.error(' ✖ Cannot find file linked to mod! skipping!')
+                logger.error(' x Cannot find file linked to mod! skipping!')
                 self.failed_mods.append(i.d_name)
                 continue
 
@@ -193,9 +193,9 @@ class CMPD:
             if not (p.exists(target) and p.isfile(target) and p.getsize(target) == p.getsize(src)):
                 logger.debug(' * Copying [{}] to out dir.'.format(i.get_linked_file()))
                 shutil.copyfile(i.linked_file_loc, target)
-                logger.info(' ✔ Copied  [{}] to out dir.'.format(i.get_linked_file()))
+                logger.info(' / Copied  [{}] to out dir.'.format(i.get_linked_file()))
             else:
-                logger.debug(' ✔ File [{}] already exists in target folder and matches.'.format(i.get_linked_file()))
+                logger.debug(' / File [{}] already exists in target folder and matches.'.format(i.get_linked_file()))
 
     def extract_overrides(self, pack_archive: zipfile.ZipFile):
         p = os.path
@@ -227,7 +227,7 @@ class CMPD:
             return AddonInfo.create_from_json(j_data)
         except Exception as e:
             logger.h_except(e)
-            logger.error(' ✖ Failed getting addon info for [{}]'.format(addon_id))
+            logger.error(' x Failed getting addon info for [{}]'.format(addon_id))
 
         return None
 
@@ -246,7 +246,7 @@ class CMPD:
             return AddonFile.create_from_json(j_data)
         except Exception as e:
             logger.h_except(e)
-            logger.error(' ✖ Failed getting file info for [{}]'.format(file_id))
+            logger.error(' x Failed getting file info for [{}]'.format(file_id))
 
         return None
 
